@@ -37,9 +37,12 @@
 ?>
 
 <?php
-if( empty($matches)):
-	echo '<p>Aucun match ne correspond à votre recherche.</p>';
-else: ?>
+
+if (empty($matches)):
+    echo '<p>Aucun match ne correspond à votre recherche.</p>';
+else:
+    if (!isset($hide_header_buttons) || !$hide_header_buttons):
+    ?>
 	<div class="container">
 		<div class="col-sm-3 block-btn"><a href="<?php echo site_url('exporter-matches'); ?>">
 			<button type="button" class="btn btn-default btn-xs action-btn"><?php echo img(_img_file_download_props('Exporter')); ?>Exporter la liste</button>
@@ -54,9 +57,12 @@ else: ?>
 			</a>
 		</div>
 	</div>
-<?php
-	echo $pagination;
-?>
+	<?php
+    endif;
+    if (!empty($pagination)):
+        echo $pagination;
+    endif;
+    ?>
 	<div class="table-responsive">
 		<table class="table table-striped table-hover">
 		<tr>
@@ -68,7 +74,7 @@ else: ?>
 			<th>Equipe 2</th>
 		</tr>
 <?php foreach ($matches as $match): ?>
-		<tr>
+		<tr<?php echo strtotime($match->match_datetime) < time() ? ' class="warning"' : '' ?>>
 			<td><?php echo $match->match_date_format; ?></td>
 			<td><?php echo $match->match_time_format; ?></td>
 			<td><?php echo $match->place_name; ?></td>
@@ -77,12 +83,15 @@ else: ?>
 			<td><?php echo $match->team2_name; ?> <span class="status status_<?php echo $match->match_team2_status; ?>">(<?php echo $match->match_team2_status; ?>)</span></td>
 		</tr>
 <?php
-	endforeach;
+    endforeach;
 ?>
 		</table>
 	</div>
-<?php
-	echo $pagination; ?>
+	<?php
+    if (!empty($pagination)):
+        echo $pagination;
+    endif;
+    ?>
 	<div class="alert alert-info">Légende pour les équipes :<br>
 		C = convoqué<br>
 		OK = confirmé<br>

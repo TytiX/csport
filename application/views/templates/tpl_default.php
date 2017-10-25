@@ -75,12 +75,14 @@ echo $_styles . "\n";
 	<div id="header" role="navigation">
         <div class="container">
 			<div class="col-sm-2"><a href="<?php echo base_url(); ?>"><img src="<?php echo base_url() . CRH_PATH_TO_IMG; ?>logo.png" alt="logo" class="logo"></a></div>
-			<div class="col-sm-9"><h1>CSPORT ROLLER</h1>
-				<h2>Comité de Rink Hockey des Pays de la Loire</h2></div>
-			<?php if(isset($login_menu)): echo $login_menu; endif; ?>
+			<div class="col-sm-9">
+				<h1>CSPORT ROLLER</h1>
+				<h2><?php echo isset($sub_title) ? $sub_title : 'Comité de Rink Hockey des Pays de la Loire'; ?></h2>
+			</div>
+			<?php if (isset($login_menu)): echo $login_menu; endif; ?>
 		</div>
 	</div>
-	
+
 	<?php echo $menu; ?>
 
 	<div class="container">
