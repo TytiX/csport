@@ -78,7 +78,7 @@ echo $_styles . "\n";
 			<div class="col-sm-9">
 				<h1>CSPORT ROLLER</h1>
 				<h2>
-					<?php if (isset($show_team_drop_down)): ?>
+					<?php if ($show_team_drop_down): ?>
 						Calendrier <?php echo form_dropdown('team', $teams, $team->team_id, 'class="team_calendar form-control input-sm"'); ?>
 					<?php else: ?>
 						Comité de Rink Hockey des Pays de la Loire
