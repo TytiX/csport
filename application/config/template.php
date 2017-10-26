@@ -62,10 +62,10 @@ $template['default']['template'] = 'templates/tpl_default';
 
 $template['default']['regions'] = array(
 	'title',
-	'sub_title',
 	'login_menu',
 	'menu',
-	'main_content'
+	'main_content',
+	'show_team_drop_down',
 );
 
 $template['default']['parser'] = 'parser';

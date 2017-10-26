@@ -68,14 +68,15 @@ class Matches extends MY_Controller
 			'date_from' => date('d/m/Y', strtotime(sprintf('1 September this year'))),
 			'date_to' => date('d/m/Y', strtotime(sprintf('1 July next year'))),
 		];
+		$this->load->helper('form');
 
 		$this->load->model('teams_model');
 		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
 		$data['team'] = $Teams_model->getTeam($team);
 
 		$Matches_model = new Matches_model();
 		$matches = $Matches_model->getAllMatches($filter);
-		var_dump($matches['result']);
 		$data['matches'] = $matches['result'];
 		$data['hide_header_buttons'] = true;
 
@@ -83,7 +84,7 @@ class Matches extends MY_Controller
 		// template
 		//-----------------------------
 		$this->template->write('title', 'Matches '.$data['team']->team_name);
-		$this->template->write('sub_title', 'Matches '.$data['team']->team_name);
+		$this->template->write('show_team_drop_down', true);
 		$login_menu = $this->_getLoginMenu();
 		$this->template->write('login_menu', $login_menu);
 		$this->template->write_view('main_content', 'matches/match_list_public_light', $data);
