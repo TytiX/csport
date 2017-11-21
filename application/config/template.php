@@ -1,4 +1,6 @@
-<?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if (!defined('BASEPATH')) {
+	exit('No direct script access allowed');
+}
 /*
 |--------------------------------------------------------------------------
 | Active template
@@ -40,12 +42,12 @@ $template['active_template'] = 'default';
 |
 | Example:
 | $template['default']['regions'] = array(
-|    'header' => array(
-|       'content' => array('<h1>Welcome</h1>','<p>Hello World</p>'),
-|       'name' => 'Page Header',
-|       'wrapper' => '<div>',
-|       'attributes' => array('id' => 'header', 'class' => 'clearfix')
-|    )
+|	'header' => array(
+|	   'content' => array('<h1>Welcome</h1>','<p>Hello World</p>'),
+|	   'name' => 'Page Header',
+|	   'wrapper' => '<div>',
+|	   'attributes' => array('id' => 'header', 'class' => 'clearfix')
+|	)
 | );
 |
 */
@@ -62,12 +64,13 @@ $template['default']['regions'] = array(
 	'title',
 	'login_menu',
 	'menu',
-	'main_content'
+	'main_content',
+	'show_team_drop_down',
 );
 
 $template['default']['parser'] = 'parser';
 $template['default']['parser_method'] = 'parse';
-$template['default']['parse_template'] = FALSE;
+$template['default']['parse_template'] = false;
 
 
 /*
@@ -83,7 +86,7 @@ $template['simple']['regions'] = array(
 
 $template['simple']['parser'] = 'parser';
 $template['simple']['parser_method'] = 'parse';
-$template['simple']['parse_template'] = FALSE;
+$template['simple']['parse_template'] = false;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,7 +101,7 @@ $template['simple']['regions'] = array(
 
 $template['simple']['parser'] = 'parser';
 $template['simple']['parser_method'] = 'parse';
-$template['simple']['parse_template'] = FALSE;
+$template['simple']['parse_template'] = false;
 
 /* End of file template.php */
 /* Location: ./application/config/template.php */

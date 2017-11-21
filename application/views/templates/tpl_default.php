@@ -75,12 +75,20 @@ echo $_styles . "\n";
 	<div id="header" role="navigation">
         <div class="container">
 			<div class="col-sm-2"><a href="<?php echo base_url(); ?>"><img src="<?php echo base_url() . CRH_PATH_TO_IMG; ?>logo.png" alt="logo" class="logo"></a></div>
-			<div class="col-sm-9"><h1>CSPORT ROLLER</h1>
-				<h2>Comité de Rink Hockey des Pays de la Loire</h2></div>
-			<?php if(isset($login_menu)): echo $login_menu; endif; ?>
+			<div class="col-sm-9">
+				<h1>CSPORT ROLLER</h1>
+				<h2>
+					<?php if ($show_team_drop_down): ?>
+						Calendrier <?php echo form_dropdown('team', $teams, $team->team_id, 'class="team_calendar form-control input-sm"'); ?>
+					<?php else: ?>
+						Comité de Rink Hockey des Pays de la Loire
+					<?php endif; ?>
+				</h2>
+			</div>
+			<?php if (isset($login_menu)): echo $login_menu; endif; ?>
 		</div>
 	</div>
-	
+
 	<?php echo $menu; ?>
 
 	<div class="container">
@@ -109,6 +117,11 @@ echo $_styles . "\n";
 			padding: 0,
 			border:  0
 		}, 600);
+	});
+	$(".team_calendar").change(function() {
+		var url_tpl = "<?php echo site_url('matches/t__NUM__'); ?>";
+		var url = url_tpl.replace("__NUM__", $(this).val());
+		window.location = url;
 	});
 </script>
 

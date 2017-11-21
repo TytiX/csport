@@ -74,8 +74,16 @@ else: ?>
 			<td><?php echo $match->match_time_format; ?></td>
 			<td><?php echo $match->place_name; ?></td>
 			<td><?php echo $match->category_name; ?></td>
-			<td><?php echo $match->team1_name; ?> <span class="status status_<?php echo $match->match_team1_status; ?>">(<?php echo $match->match_team1_status; ?>)</span></td>
-			<td><?php echo $match->team2_name; ?> <span class="status status_<?php echo $match->match_team2_status; ?>">(<?php echo $match->match_team2_status; ?>)</span></td>
+			<td>
+				<a href="<?php echo site_url('matches/t' . $match->match_team1); ?>">
+					<?php echo $match->team1_name; ?>
+				</a>
+				<span class="status status_<?php echo $match->match_team1_status; ?>">(<?php echo $match->match_team1_status; ?>)</span></td>
+			<td>
+				<a href="<?php echo site_url('matches/t' . $match->match_team2); ?>">
+					<?php echo $match->team2_name; ?>
+				</a>
+				<span class="status status_<?php echo $match->match_team2_status; ?>">(<?php echo $match->match_team2_status; ?>)</span></td>
 			<td><?php echo $match->referee1_club_name;
 			if (! empty($match->referee1_club_name)):
 				echo ' <span class="status status_' . $match->match_referee1_status . '">(' . $match->match_referee1_status . ')</span>';

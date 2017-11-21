@@ -21,9 +21,9 @@
  * See LICENCE.TXT file for more information.
  *
  * @copyright  Copyright (c) 2013-2014 Marie Kuntz - Lezard Rouge (http://www.lezard-rouge.fr)
- * @license    GNU-GPL v3 http://www.gnu.org/licenses/gpl.html
- * @version    1.0
- * @author     Marie Kuntz - Lezard Rouge SARL - www.lezard-rouge.fr - info@lezard-rouge.fr
+ * @license	GNU-GPL v3 http://www.gnu.org/licenses/gpl.html
+ * @version	1.0
+ * @author	 Marie Kuntz - Lezard Rouge SARL - www.lezard-rouge.fr - info@lezard-rouge.fr
  */
 
 /**
@@ -34,7 +34,9 @@
  * @author Marie Kuntz / Lezard Rouge
  */
 
-if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+if (! defined('BASEPATH')) {
+	exit('No direct script access allowed');
+}
 
 class Matches extends MY_Controller
 {
@@ -44,7 +46,7 @@ class Matches extends MY_Controller
 	 * constructeur
 	 *
 	 */
-	function __construct()
+	public function __construct()
 	{
 		parent::__construct();
 		$this->load->model('matches_model');
@@ -54,11 +56,40 @@ class Matches extends MY_Controller
 	/**
 	 * default controller
 	 */
-	function index()
+	public function index()
 	{
 		redirect('', 'location');
 	}
 
+	public function teamMatchList($view, $display, $team = 1)
+	{
+		$filter = [
+			'team' => $team,
+			'date_from' => date('d/m/Y', strtotime(sprintf('1 September this year'))),
+			'date_to' => date('d/m/Y', strtotime(sprintf('1 July next year'))),
+		];
+		$this->load->helper('form');
+
+		$this->load->model('teams_model');
+		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
+		$data['team'] = $Teams_model->getTeam($team);
+
+		$Matches_model = new Matches_model();
+		$matches = $Matches_model->getAllMatches($filter);
+		$data['matches'] = $matches['result'];
+		$data['hide_header_buttons'] = true;
+
+		//-----------------------------
+		// template
+		//-----------------------------
+		$this->template->write('title', 'Matches '.$data['team']->team_name);
+		$this->template->write('show_team_drop_down', true);
+		$login_menu = $this->_getLoginMenu();
+		$this->template->write('login_menu', $login_menu);
+		$this->template->write_view('main_content', 'matches/match_list_public_light', $data);
+		$this->template->render();
+	}
 
 	/**
 	 * matches list (public view)
@@ -69,7 +100,7 @@ class Matches extends MY_Controller
 	 * @param string $orderby, sort column
 	 * @param string $order, order asc|desc
 	 */
-	function matchList($view, $display, $page_number = 1, $orderby = '', $order = 'asc')
+	public function matchList($view, $display, $page_number = 1, $orderby = '', $order = 'asc')
 	{
 		$data = array('filters' => array(), 'show_search' => false);
 		$more_params = '';
@@ -81,89 +112,86 @@ class Matches extends MY_Controller
 		$type_message =$this->session->flashdata('type_message');
 		$data['message'] = _set_result_message($message, $type_message);
 
-		if($display == 'search'
-			OR $display == 'order') {
-
+		if ($display == 'search'
+			or $display == 'order') {
 			$data['show_search'] = true;
-			
-			// get search filters
-			$this->form_validation->set_rules('f_club',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_cat',       '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_team',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_referee',   '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_where',     '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_date_from', '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_date_to',   '', 'trim|xss_clean');
 
-			if($this->form_validation->run() === false) {
+			// get search filters
+			$this->form_validation->set_rules('f_club', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_cat', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_team', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_referee', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_where', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_date_from', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_date_to', '', 'trim|xss_clean');
+
+			if ($this->form_validation->run() === false) {
 
 				// the user has ordered the results
 				// and/or is browsing on multiple pages after a search
 				// => must get search filters (stored in session)
-				$f_club      = $this->session->userdata('f_club');
-				$f_cat       = $this->session->userdata('f_cat');
-				$f_team      = $this->session->userdata('f_team');
+				$f_club	  = $this->session->userdata('f_club');
+				$f_cat	   = $this->session->userdata('f_cat');
+				$f_team	  = $this->session->userdata('f_team');
 				$f_referee   = $this->session->userdata('f_referee');
-				$f_where     = $this->session->userdata('f_where');
+				$f_where	 = $this->session->userdata('f_where');
 				$f_date_from = $this->session->userdata('f_date_from');
 				$f_date_to   = $this->session->userdata('f_date_to');
-
 			} else {
 
 				// user just pushed search button so get fresh filters
-				$f_club      = set_value('f_club', '');
-				$f_cat       = set_value('f_cat', '');
-				$f_team      = set_value('f_team', '');
+				$f_club	  = set_value('f_club', '');
+				$f_cat	   = set_value('f_cat', '');
+				$f_team	  = set_value('f_team', '');
 				$f_referee   = set_value('f_referee', '');
-				$f_where     = set_value('f_where', '0');
+				$f_where	 = set_value('f_where', '0');
 				$f_date_from = set_value('f_date_from', '');
 				$f_date_to   = set_value('f_date_to', '');
 				// store in session
 				$this->session->set_userdata(array(
-					'f_club'      => $f_club,
-					'f_cat'       => $f_cat,
-					'f_team'      => $f_team,
+					'f_club'	  => $f_club,
+					'f_cat'	   => $f_cat,
+					'f_team'	  => $f_team,
 					'f_referee'   => $f_referee,
-					'f_where'     => $f_where,
+					'f_where'	 => $f_where,
 					'f_date_from' => $f_date_from,
 					'f_date_to'   => $f_date_to
 				));
 			}
 
 			$data['filters'] = array(
-				'club'         => $f_club,
-				'cat'          => $f_cat,
-				'team'         => $f_team,
+				'club'		 => $f_club,
+				'cat'		  => $f_cat,
+				'team'		 => $f_team,
 				'club_referee' => $f_referee,
-				'place'        => $f_where,
-				'date_from'    => $f_date_from,
-				'date_to'      => $f_date_to,
+				'place'		=> $f_where,
+				'date_from'	=> $f_date_from,
+				'date_to'	  => $f_date_to,
 			);
 
 			// if visitor has sorted the list
-			if($display == 'order') {
-				if($orderby == 'date') {
+			if ($display == 'order') {
+				if ($orderby == 'date') {
 					$order_type = 'order_date';
-				} elseif($orderby == 'cat') {
+				} elseif ($orderby == 'cat') {
 					$order_type = 'order_cat';
-				} elseif($orderby == 'equ1') {
+				} elseif ($orderby == 'equ1') {
 					$order_type = 'order_team1';
-				} elseif($orderby == 'equ2') {
+				} elseif ($orderby == 'equ2') {
 					$order_type = 'order_team2';
-				} elseif($orderby == 'referee1') {
+				} elseif ($orderby == 'referee1') {
 					$order_type = 'order_referee1';
-				} elseif($orderby == 'referee2') {
+				} elseif ($orderby == 'referee2') {
 					$order_type = 'order_referee2';
 				} else {
 					$order_type = 'order_date';
 				}
-				if($order != 'desc') {
+				if ($order != 'desc') {
 					$order = 'asc';
 				}
 				$data['filters'][$order_type] = $order;
 				$more_params = '/' . $orderby . '-' . $order;
 			}
-
 		}
 		// if $display = list
 		else {
@@ -171,10 +199,10 @@ class Matches extends MY_Controller
 			$this->session->unset_userdata(array(
 				'f_date_from' => '',
 				'f_date_to'   => '',
-				'f_club'      => '',
-				'f_cat'       => '',
-				'f_team'      => '',
-				'f_where'     => '',
+				'f_club'	  => '',
+				'f_cat'	   => '',
+				'f_team'	  => '',
+				'f_where'	 => '',
 				'f_referee'   => '',
 			));
 			$this->session->set_userdata(array('f_where' => 0, 'f_date_from' => date('d/m/Y')));
@@ -183,11 +211,12 @@ class Matches extends MY_Controller
 		//-- end filters
 
 		$limit = ($page_number - 1) * CRH_NB_RECORD;
-		$matches = Matches_model::getAllMatches($data['filters'], $limit, CRH_NB_RECORD);
+		$Matches_model = new Matches_model();
+		$matches = $Matches_model->getAllMatches($data['filters'], $limit, CRH_NB_RECORD);
 		$data['matches'] = $matches['result'];
 
 		$data['title'] = "Prochains matches";
-		if($view == 'simple') {
+		if ($view == 'simple') {
 			$tpl = 'match_list_public_light';
 			$data['form_url'] = site_url('matches/recherche-simple');
 			$data['form_raz'] = site_url('matches/liste-simple');
@@ -201,11 +230,12 @@ class Matches extends MY_Controller
 
 		// pagination
 		$data['current_page_url'] = _recreate_uri(2, $this->uri->segment_array());
-		if(empty($data['current_page_url'])) {
+		if (empty($data['current_page_url'])) {
 			$data['current_page_url'] = $current_url;
 		}
-        $nb_tot_pages = ceil($matches['total'] / CRH_NB_RECORD);
-		$data['pagination'] = Misc_model::pagination(
+		$nb_tot_pages = ceil($matches['total'] / CRH_NB_RECORD);
+		$Misc_model = new Misc_model();
+		$data['pagination'] = $Misc_model->pagination(
 				$data['current_page_url'],
 				$nb_tot_pages,
 				$page_number,
@@ -213,13 +243,16 @@ class Matches extends MY_Controller
 			);
 
 		$this->load->model('clubs_model');
-		$data['clubs'] = Clubs_model::getClubsAsArray(true);
-		$data['club_referee'] = Clubs_model::getClubsAsArray(true, true);
+		$Clubs_model = new Clubs_model();
+		$data['clubs'] = $Clubs_model->getClubsAsArray(true);
+		$data['club_referee'] = $Clubs_model->getClubsAsArray(true, true);
 		$this->load->model('categories_model');
-		$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Categories_model = new Categories_model();
+		$data['categories'] = $Categories_model->getCategoriesAsArray(true);
 		$this->load->model('teams_model');
-		$data['teams'] = Teams_model::getTeamsAsArray(true);
-		$data['status'] = Teams_model::getTeamStatus();
+		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
+		$data['status'] = $Teams_model->getTeamStatus();
 
 		//-----------------------------
 		// template
@@ -243,9 +276,10 @@ class Matches extends MY_Controller
 	 * @param string $orderby, sort column
 	 * @param string $order, order asc|desc
 	 */
-	function managePlanningMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
+	public function managePlanningMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
 	{
-		Permissions_model::userHasAccess('match_list');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_list');
 
 		$data = array('filters' => array());
 		$more_params = '';
@@ -257,80 +291,78 @@ class Matches extends MY_Controller
 		$type_message =$this->session->flashdata('type_message');
 		$data['message'] = _set_result_message($message, $type_message);
 
-		if($display == 'search'
-			OR $display == 'order') {
+		if ($display == 'search'
+			or $display == 'order') {
 
 			// get search filters
-			$this->form_validation->set_rules('fp_club',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('fp_cat',       '', 'trim|xss_clean');
-			$this->form_validation->set_rules('fp_referee',   '', 'trim|xss_clean');
-			$this->form_validation->set_rules('fp_cs',        '', 'trim|xss_clean');
+			$this->form_validation->set_rules('fp_club', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('fp_cat', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('fp_referee', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('fp_cs', '', 'trim|xss_clean');
 			$this->form_validation->set_rules('fp_date_from', '', 'trim|xss_clean');
-			$this->form_validation->set_rules('fp_date_to',   '', 'trim|xss_clean');
+			$this->form_validation->set_rules('fp_date_to', '', 'trim|xss_clean');
 
-			if($this->form_validation->run() === false) {
+			if ($this->form_validation->run() === false) {
 
 				// the user has ordered the results
 				// and/or is browsing on multiple pages after a search
 				// => must get search filters (stored in session)
-				$f_club      = $this->session->userdata('fp_club');
-				$f_cat       = $this->session->userdata('fp_cat');
-				$f_referee   = $this->session->userdata('fp_referee');
-				$f_cs        = $this->session->userdata('fp_cs');
-				$f_date_from = $this->session->userdata('fp_date_from');
-				$f_date_to   = $this->session->userdata('fp_date_to');
-
+				$f_club		= $this->session->userdata('fp_club');
+				$f_cat		= $this->session->userdata('fp_cat');
+				$f_referee	= $this->session->userdata('fp_referee');
+				$f_cs		= $this->session->userdata('fp_cs');
+				$f_date_from= $this->session->userdata('fp_date_from');
+				$f_date_to	= $this->session->userdata('fp_date_to');
 			} else {
 
 				// user just pushed search button so get fresh filters
-				$f_club      = set_value('fp_club', '');
-				$f_cat       = set_value('fp_cat', '');
+				$f_club	  = set_value('fp_club', '');
+				$f_cat	   = set_value('fp_cat', '');
 				$f_referee   = set_value('fp_referee', '');
-				$f_cs        = set_value('fp_cs', '0');
+				$f_cs		= set_value('fp_cs', '0');
 				$f_date_from = set_value('fp_date_from', '');
 				$f_date_to   = set_value('fp_date_to', '');
 				// store in session
 				$this->session->set_userdata(array(
-					'fp_club'      => $f_club,
-					'fp_cat'       => $f_cat,
+					'fp_club'	  => $f_club,
+					'fp_cat'	   => $f_cat,
 					'fp_referee'   => $f_referee,
-					'fp_cs'        => $f_cs,
+					'fp_cs'		=> $f_cs,
 					'fp_date_from' => $f_date_from,
 					'fp_date_to'   => $f_date_to
 				));
 			}
 
 			$data['filters'] = array(
-				'club'         => $f_club,
-				'cat'          => $f_cat,
+				'club'		 => $f_club,
+				'cat'		  => $f_cat,
 				'club_referee' => $f_referee,
-				'cs'           => $f_cs,
-				'date_from'    => $f_date_from,
-				'date_to'      => $f_date_to,
+				'cs'		   => $f_cs,
+				'date_from'	=> $f_date_from,
+				'date_to'	  => $f_date_to,
 			);
 
 			// if visitor has sorted the list
-			if($display == 'order') {
-				if($orderby == 'date') {
+			if ($display == 'order') {
+				if ($orderby == 'date') {
 					$order_type = 'order_date';
-				} elseif($orderby == 'cat') {
+				} elseif ($orderby == 'cat') {
 					$order_type = 'order_cat';
-				} elseif($orderby == 'cs') {
+				} elseif ($orderby == 'cs') {
 					$order_type = 'order_cs';
-				} elseif($orderby == 'equ1') {
+				} elseif ($orderby == 'equ1') {
 					$order_type = 'order_team1';
-				} elseif($orderby == 'equ2') {
+				} elseif ($orderby == 'equ2') {
 					$order_type = 'order_team2';
 				} else {
 					$order_type = 'order_date';
 				}
-				if($order != 'desc') {
+				if ($order != 'desc') {
 					$order = 'asc';
 				}
 				$data['filters'][$order_type] = $order;
 				$more_params = '/' . $orderby . '-' . $order;
 			}
-
 		}
 		// if $display = list
 		else {
@@ -338,9 +370,9 @@ class Matches extends MY_Controller
 			$this->session->unset_userdata(array(
 				'fp_date_from' => '',
 				'fp_date_to'   => '',
-				'fp_club'      => '',
-				'fp_cat'       => '',
-				'fp_cs'        => '',
+				'fp_club'	  => '',
+				'fp_cat'	   => '',
+				'fp_cs'		=> '',
 				'fp_referee'   => '',
 			));
 			$this->session->set_userdata(array('fp_date_from' => date('d/m/Y')));
@@ -350,13 +382,15 @@ class Matches extends MY_Controller
 
 		$nb_per_page = 10;
 		$limit = ($page_number - 1) * $nb_per_page;
-		$matches = Matches_model::getAllMatches($data['filters'], $limit, $nb_per_page);
+		$Matches_model = new Matches_model();
+		$matches = $Matches_model->getAllMatches($data['filters'], $limit, $nb_per_page);
 		$data['matches'] = $matches['result'];
 
 		// pagination
 		$data['current_page_url'] = _recreate_uri(2, $this->uri->segment_array());
-        $nb_tot_pages = ceil($matches['total'] / $nb_per_page);
-		$data['pagination'] = Misc_model::pagination(
+		$nb_tot_pages = ceil($matches['total'] / $nb_per_page);
+		$Misc_model = new Misc_model();
+		$data['pagination'] = $Misc_model->pagination(
 				$data['current_page_url'],
 				$nb_tot_pages,
 				$page_number,
@@ -364,17 +398,22 @@ class Matches extends MY_Controller
 			);
 
 		$this->load->model('clubs_model');
-		$data['clubs'] = Clubs_model::getClubsAsArray(true);
-		$data['club_referee'] = Clubs_model::getClubsAsArray(true, true);
+		$Clubs_model = new Clubs_model();
+		$data['clubs'] = $Clubs_model->getClubsAsArray(true);
+		$data['club_referee'] = $Clubs_model->getClubsAsArray(true, true);
 		$this->load->model('categories_model');
-		$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Categories_model = new Categories_model();
+		$data['categories'] = $Categories_model->getCategoriesAsArray(true);
 		$this->load->model('championships_model');
-		$data['cs'] = Championships_model::getCsAsArray(true);
+		$Championships_model = new Championships_model();
+		$data['cs'] = $Championships_model->getCsAsArray(true);
 		$this->load->model('places_model');
-		$data['places'] = Places_model::getPlacesAsArray(true);
+		$Places_model = new Places_model();
+		$data['places'] = $Places_model->getPlacesAsArray(true);
 		$this->load->model('teams_model');
-		$data['teams'] = Teams_model::getTeamsAsArray(true);
-		$data['status'] = Teams_model::getTeamStatus();
+		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
+		$data['status'] = $Teams_model->getTeamStatus();
 
 		//-----------------------------
 		// template
@@ -390,65 +429,66 @@ class Matches extends MY_Controller
 	/**
 	 * records matches modifications
 	 */
-	function validatePlanningMatches()
+	public function validatePlanningMatches()
 	{
-		Permissions_model::userHasAccess('match_edit');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_edit');
 		$this->load->library('form_validation');
 		$data = array();
 
-		$this->form_validation->set_rules('match_date',  'Date du match',  'xss_clean');
-		$this->form_validation->set_rules('match_time',  'Heure du match', 'xss_clean');
-		$this->form_validation->set_rules('match_place', 'Lieu du match',  'xss_clean');
-		$this->form_validation->set_rules('match_cs',    'Compétition',    'xss_clean');
-		$this->form_validation->set_rules('match_cat',   'Catégorie',      'xss_clean');
-		$this->form_validation->set_rules('match_team1', 'Equipe 1',       'xss_clean');
-		$this->form_validation->set_rules('match_team2', 'Equipe 2',       'xss_clean');
+		$this->form_validation->set_rules('match_date', 'Date du match', 'xss_clean');
+		$this->form_validation->set_rules('match_time', 'Heure du match', 'xss_clean');
+		$this->form_validation->set_rules('match_place', 'Lieu du match', 'xss_clean');
+		$this->form_validation->set_rules('match_cs', 'Compétition', 'xss_clean');
+		$this->form_validation->set_rules('match_cat', 'Catégorie', 'xss_clean');
+		$this->form_validation->set_rules('match_team1', 'Equipe 1', 'xss_clean');
+		$this->form_validation->set_rules('match_team2', 'Equipe 2', 'xss_clean');
 		$this->form_validation->set_rules('match_team1_status', 'Statut équipe 1', 'xss_clean');
 		$this->form_validation->set_rules('match_team2_status', 'Statut équipe 2', 'xss_clean');
-		
-		if ($this->form_validation->run() === true) {
 
-			foreach($_POST['match_date'] as $match_id => $match_date) {
+		if ($this->form_validation->run() === true) {
+			foreach ($_POST['match_date'] as $match_id => $match_date) {
 				$date = set_value('match_date');
-				if(_myCheckDate($date, 'fr')) {
+				if (_myCheckDate($date, 'fr')) {
 					$data[$match_id]->match_datetime = _date2ISO($date);
 				}
 			}
-			foreach($_POST['match_time'] as $match_id => $match_time) {
+			foreach ($_POST['match_time'] as $match_id => $match_time) {
 				$time = set_value('match_time');
-				if(isset($data[$match_id]->match_datetime)) {
+				if (isset($data[$match_id]->match_datetime)) {
 					$data[$match_id]->match_datetime .= ' ' . _hour2Iso($time);
 				}
 			}
-			foreach($_POST['match_place'] as $match_id => $match_place) {
+			foreach ($_POST['match_place'] as $match_id => $match_place) {
 				$place = set_value('match_place');
 				$data[$match_id]->match_place_id = $place;
 			}
-			foreach($_POST['match_cs'] as $match_id => $match_cs) {
+			foreach ($_POST['match_cs'] as $match_id => $match_cs) {
 				$cs = set_value('match_cs');
 				$data[$match_id]->match_cs_id = $cs;
 			}
-			foreach($_POST['match_cat'] as $match_id => $match_cat) {
+			foreach ($_POST['match_cat'] as $match_id => $match_cat) {
 				$cat = set_value('match_cat');
 				$data[$match_id]->match_category_id = $cat;
 			}
-			foreach($_POST['match_team1'] as $match_id => $match_team1) {
+			foreach ($_POST['match_team1'] as $match_id => $match_team1) {
 				$team1 = set_value('match_team1');
 				$data[$match_id]->match_team1 = $team1;
 			}
-			foreach($_POST['match_team2'] as $match_id => $match_team2) {
+			foreach ($_POST['match_team2'] as $match_id => $match_team2) {
 				$team2 = set_value('match_team2');
 				$data[$match_id]->match_team2 = $team2;
 			}
-			foreach($_POST['match_team1_status'] as $match_id => $match_team1_status) {
+			foreach ($_POST['match_team1_status'] as $match_id => $match_team1_status) {
 				$team1 = set_value('match_team1_status');
 				$data[$match_id]->match_team1_status = $team1;
 			}
-			foreach($_POST['match_team2_status'] as $match_id => $match_team2_status) {
+			foreach ($_POST['match_team2_status'] as $match_id => $match_team2_status) {
 				$team2_status = set_value('match_team2_status');
 				$data[$match_id]->match_team2_status = $team2_status;
 			}
-			Matches_model::massUpdate($data);
+			$Matches_model = new Matches_model();
+			$Matches_model->massUpdate($data);
 
 			$this->session->set_flashdata('message', 'Les matches ont été mis à jour.');
 			$this->session->set_flashdata('type_message', CRH_TYPE_MSG_SUCCESS);
@@ -469,15 +509,17 @@ class Matches extends MY_Controller
 	 * @param string $orderby, sort column
 	 * @param string $order, order asc|desc
 	 */
-	function manageTeamMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
+	public function manageTeamMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
 	{
-		Permissions_model::userHasAccess('match_edit');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_edit');
 
 		$user_id = $this->session->userdata('sess_user_id');
 		$club_id = $this->session->userdata('sess_club_id');
 		$club_name = $this->session->userdata('sess_club_name');
 		$this->load->model('teams_model');
-		$tmp_teams = Teams_model::getTeamsByUser($user_id);
+		$Teams_model = new Teams_model();
+		$tmp_teams = $Teams_model->getTeamsByUser($user_id);
 		$teams = array();
 		$tmp_categories = array();
 		foreach ($tmp_teams as $row) {
@@ -485,7 +527,8 @@ class Matches extends MY_Controller
 			$tmp_categories[] = $row->team_category_id;
 		}
 		$this->load->model('categories_model');
-		$categories = Categories_model::getFilteredCategoriesAsArray($tmp_categories);
+		$Categories_model = new Categories_model();
+		$categories = $Categories_model->getFilteredCategoriesAsArray($tmp_categories);
 
 		$data = array('filters' => array(), 'show_search' => false);
 		$more_params = '';
@@ -497,91 +540,89 @@ class Matches extends MY_Controller
 		$type_message =$this->session->flashdata('type_message');
 		$data['message'] = _set_result_message($message, $type_message);
 
-		if($display == 'search'
-			OR $display == 'order') {
+		if ($display == 'search'
+			or $display == 'order') {
 
 			// get search filters
-			$this->form_validation->set_rules('f_club',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_cat',       '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_team',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_referee',   '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_where',     '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_club', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_cat', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_team', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_referee', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_where', '', 'trim|xss_clean');
 			$this->form_validation->set_rules('f_date_from', '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_date_to',   '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_date_to', '', 'trim|xss_clean');
 
-			if($this->form_validation->run() === false) {
+			if ($this->form_validation->run() === false) {
 
 				// the user has ordered the results
 				// and/or is browsing on multiple pages after a search
 				// => must get search filters (stored in session)
-				$fp_club      = $this->session->userdata('fp_club');
-				$fp_cat       = $this->session->userdata('fp_cat');
-				$fp_team      = $this->session->userdata('fp_team');
+				$fp_club	  = $this->session->userdata('fp_club');
+				$fp_cat	   = $this->session->userdata('fp_cat');
+				$fp_team	  = $this->session->userdata('fp_team');
 				$fp_referee   = $this->session->userdata('fp_referee');
-				$fp_where     = $this->session->userdata('fp_where');
+				$fp_where	 = $this->session->userdata('fp_where');
 				$fp_date_from = $this->session->userdata('fp_date_from');
 				$fp_date_to   = $this->session->userdata('fp_date_to');
-				
 			} else {
 
 				// user just pushed search button so get fresh filters
-				$fp_club      = set_value('f_club', '');
-				$fp_cat       = set_value('f_cat', '');
-				$fp_team      = set_value('f_team', '');
+				$fp_club	  = set_value('f_club', '');
+				$fp_cat	   = set_value('f_cat', '');
+				$fp_team	  = set_value('f_team', '');
 				$fp_referee   = set_value('f_referee', '');
-				$fp_where     = set_value('f_where', '0');
+				$fp_where	 = set_value('f_where', '0');
 				$fp_date_from = set_value('f_date_from', '');
 				$fp_date_to   = set_value('f_date_to', '');
 				// store in session
 				$this->session->set_userdata(array(
-					'fp_club'      => $fp_club,
-					'fp_cat'       => $fp_cat,
-					'fp_cats'      => $categories,
-					'fp_team'      => $fp_team,
-					'fp_teams'     => $teams,
+					'fp_club'	  => $fp_club,
+					'fp_cat'	   => $fp_cat,
+					'fp_cats'	  => $categories,
+					'fp_team'	  => $fp_team,
+					'fp_teams'	 => $teams,
 					'fp_referee'   => $fp_referee,
-					'fp_where'     => $fp_where,
+					'fp_where'	 => $fp_where,
 					'fp_date_from' => $fp_date_from,
 					'fp_date_to'   => $fp_date_to
 				));
 			}
 
 			$data['filters'] = array(
-				'club'         => $fp_club,
-				'cat'          => $fp_cat,
+				'club'		 => $fp_club,
+				'cat'		  => $fp_cat,
 				'categories'   => $categories,
-				'team'         => $fp_team,
-				'teams'        => $teams,
+				'team'		 => $fp_team,
+				'teams'		=> $teams,
 				'club_referee' => $fp_referee,
-				'place'        => $fp_where,
-				'date_from'    => $fp_date_from,
-				'date_to'      => $fp_date_to,
+				'place'		=> $fp_where,
+				'date_from'	=> $fp_date_from,
+				'date_to'	  => $fp_date_to,
 			);
 
 			// if visitor has sorted the list
-			if($display == 'order') {
-				if($orderby == 'date') {
+			if ($display == 'order') {
+				if ($orderby == 'date') {
 					$order_type = 'order_date';
-				} elseif($orderby == 'cat') {
+				} elseif ($orderby == 'cat') {
 					$order_type = 'order_cat';
-				} elseif($orderby == 'equ1') {
+				} elseif ($orderby == 'equ1') {
 					$order_type = 'order_team1';
-				} elseif($orderby == 'equ2') {
+				} elseif ($orderby == 'equ2') {
 					$order_type = 'order_team2';
-				} elseif($orderby == 'referee1') {
+				} elseif ($orderby == 'referee1') {
 					$order_type = 'order_referee1';
-				} elseif($orderby == 'referee2') {
+				} elseif ($orderby == 'referee2') {
 					$order_type = 'order_referee2';
 				} else {
 					$order_type = 'order_date';
 				}
-				if($order != 'desc') {
+				if ($order != 'desc') {
 					$order = 'asc';
 				}
 				$data['filters'][$order_type] = $order;
 				$more_params = '/' . $orderby . '-' . $order;
 			}
-
 		}
 		// if $display = list
 		else {
@@ -589,12 +630,12 @@ class Matches extends MY_Controller
 			$this->session->unset_userdata(array(
 				'fp_date_from' => '',
 				'fp_date_to'   => '',
-				'fp_club'      => '',
-				'fp_cat'       => '',
-				'fp_cats'      => '',
-				'fp_team'      => '',
-				'fp_teams'     => '',
-				'fp_where'     => '',
+				'fp_club'	  => '',
+				'fp_cat'	   => '',
+				'fp_cats'	  => '',
+				'fp_team'	  => '',
+				'fp_teams'	 => '',
+				'fp_where'	 => '',
 				'fp_referee'   => '',
 			));
 			$this->session->set_userdata(array('fp_club' => $club_id, 'fp_teams' => $teams, 'fp_cats' => $categories, 'fp_where' => 0, 'fp_date_from' => date('d/m/Y')));
@@ -604,13 +645,15 @@ class Matches extends MY_Controller
 
 		$nb_per_page = 10;
 		$limit = ($page_number - 1) * $nb_per_page;
-		$matches = Matches_model::getAllMatches($data['filters'], $limit, $nb_per_page);
+		$Matches_model = new Matches_model();
+		$matches = $Matches_model->getAllMatches($data['filters'], $limit, $nb_per_page);
 		$data['matches'] = $matches['result'];
 
 		// pagination
 		$data['current_page_url'] = _recreate_uri(2, $this->uri->segment_array());
-        $nb_tot_pages = ceil($matches['total'] / $nb_per_page);
-		$data['pagination'] = Misc_model::pagination(
+		$nb_tot_pages = ceil($matches['total'] / $nb_per_page);
+		$Misc_model = new Misc_model();
+		$data['pagination'] = $Misc_model->pagination(
 				$data['current_page_url'],
 				$nb_tot_pages,
 				$page_number,
@@ -619,13 +662,14 @@ class Matches extends MY_Controller
 
 		$this->load->model('clubs_model');
 		$data['clubs'] = array($club_id => $club_name);
-		$data['club_referee'] = Clubs_model::getClubsAsArray(true, true);
-		//$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Clubs_model = new Clubs_model();
+		$data['club_referee'] = $Clubs_model->getClubsAsArray(true, true);
 		$data['categories'] = $categories;
 		$this->load->model('teams_model');
 		$data['teams'] = $teams;
-		$data['status'] = Teams_model::getTeamStatus();
-		$data['actions'] = Teams_model::getTeamActions(true);
+		$Teams_model = new Teams_model();
+		$data['status'] = $Teams_model->getTeamStatus();
+		$data['actions'] = $Teams_model->getTeamActions(true);
 
 		$data['title'] = "Matches de mes équipes";
 		$data['form_url'] = site_url("equipes/recherche-matches");
@@ -646,9 +690,10 @@ class Matches extends MY_Controller
 	/**
 	 * records matches modifications
 	 */
-	function validateTeamMatches()
+	public function validateTeamMatches()
 	{
-		Permissions_model::userHasAccess('match_edit');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_edit');
 		$this->load->model('notifications_model');
 		$this->load->library('form_validation');
 		$data = array();
@@ -660,17 +705,16 @@ class Matches extends MY_Controller
 		$this->form_validation->set_rules('match_team2_previous_status', 'Précédent statut équipe 2', 'xss_clean');
 
 		if ($this->form_validation->run() === true) {
-
 			$previous_team1_status = array();
-			foreach($_POST['match_team1_previous_status'] as $match_id => $team_status) {
+			foreach ($_POST['match_team1_previous_status'] as $match_id => $team_status) {
 				$previous_status = set_value('match_team1_previous_status');
 				$previous_team1_status[$match_id] = $previous_status;
 			}
-			foreach($_POST['match_team1_status'] as $match_id => $match_status) {
+			foreach ($_POST['match_team1_status'] as $match_id => $match_status) {
 				$status = set_value('match_team1_status');
 				$data[$match_id]->match_team1_status = $status;
 				// send an alert if team asked defer or cancel
-				if( ($status == 'R' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'R'))
+				if (($status == 'R' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'R'))
 					|| ($status == 'F' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'F'))) {
 					$notification_data[$match_id] = array(
 						'team' => 1,
@@ -679,15 +723,15 @@ class Matches extends MY_Controller
 				}
 			}
 			$previous_team2_status = array();
-			foreach($_POST['match_team2_previous_status'] as $match_id => $team_status) {
+			foreach ($_POST['match_team2_previous_status'] as $match_id => $team_status) {
 				$previous_status = set_value('match_team2_previous_status');
 				$previous_team2_status[$match_id] = $previous_status;
 			}
-			foreach($_POST['match_team2_status'] as $match_id => $match_status) {
+			foreach ($_POST['match_team2_status'] as $match_id => $match_status) {
 				$status = set_value('match_team2_status');
 				$data[$match_id]->match_team2_status = $status;
 				// send an alert if team asked defer or cancel
-				if( ($status == 'R' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'R'))
+				if (($status == 'R' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'R'))
 					|| ($status == 'F' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'F'))) {
 					$notification_data[$match_id] = array(
 						'team' => 2,
@@ -695,8 +739,10 @@ class Matches extends MY_Controller
 					);
 				}
 			}
-			Matches_model::massUpdate($data);
-			Notifications_model::massAlertTeamNok($notification_data);
+			$Matches_model = new Matches_model();
+			$Matches_model->massUpdate($data);
+			$Notifications_model = new Notifications_model();
+			$Notifications_model->massAlertTeamNok($notification_data);
 
 			$this->session->set_flashdata('message', 'Les matches ont été mis à jour.');
 			$this->session->set_flashdata('type_message', CRH_TYPE_MSG_SUCCESS);
@@ -717,14 +763,16 @@ class Matches extends MY_Controller
 	 * @param string $orderby, sort column
 	 * @param string $order, order asc|desc
 	 */
-	function manageClubMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
+	public function manageClubMatches($display, $page_number = 1, $orderby = '', $order = 'asc')
 	{
-		Permissions_model::userHasAccess('match_edit');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_edit');
 
 		$club_id = $this->session->userdata('sess_club_id');
 		$club_name = $this->session->userdata('sess_club_name');
 		$this->load->model('teams_model');
-		$teams = Teams_model::getTeamsByClub($club_id);
+		$Teams_model = new Teams_model();
+		$teams = $Teams_model->getTeamsByClub($club_id);
 
 		$data = array('filters' => array(), 'current_club' => $club_id, 'show_search' => false);
 		$more_params = '';
@@ -736,90 +784,88 @@ class Matches extends MY_Controller
 		$type_message =$this->session->flashdata('type_message');
 		$data['message'] = _set_result_message($message, $type_message);
 
-		if($display == 'search'
-			OR $display == 'order') {
+		if ($display == 'search'
+			or $display == 'order') {
 
 			// get search filters
-			$this->form_validation->set_rules('f_club',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_cat',       '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_team',      '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_referee',   '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_where',     '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_club', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_cat', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_team', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_referee', '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_where', '', 'trim|xss_clean');
 			$this->form_validation->set_rules('f_date_from', '', 'trim|xss_clean');
-			$this->form_validation->set_rules('f_date_to',   '', 'trim|xss_clean');
+			$this->form_validation->set_rules('f_date_to', '', 'trim|xss_clean');
 
-			if($this->form_validation->run() === false) {
+			if ($this->form_validation->run() === false) {
 
 				// the user has ordered the results
 				// and/or is browsing on multiple pages after a search
 				// => must get search filters (stored in session)
-				$f_club      = $this->session->userdata('fp_club');
-				$f_cat       = $this->session->userdata('fp_cat');
-				$f_team      = $this->session->userdata('fp_team');
-				$teams       = $this->session->userdata('fp_teams');
+				$f_club	  = $this->session->userdata('fp_club');
+				$f_cat	   = $this->session->userdata('fp_cat');
+				$f_team	  = $this->session->userdata('fp_team');
+				$teams	   = $this->session->userdata('fp_teams');
 				$f_referee   = $this->session->userdata('fp_referee');
-				$f_where     = $this->session->userdata('fp_where');
+				$f_where	 = $this->session->userdata('fp_where');
 				$f_date_from = $this->session->userdata('fp_date_from');
 				$f_date_to   = $this->session->userdata('fp_date_to');
-
 			} else {
 
 				// user just pushed search button so get fresh filters
-				$f_club      = set_value('f_club', '');
-				$f_cat       = set_value('f_cat', '');
-				$f_team      = set_value('f_team', '');
+				$f_club	  = set_value('f_club', '');
+				$f_cat	   = set_value('f_cat', '');
+				$f_team	  = set_value('f_team', '');
 				$f_referee   = set_value('f_referee', '');
-				$f_where     = set_value('f_where', '0');
+				$f_where	 = set_value('f_where', '0');
 				$f_date_from = set_value('f_date_from', '');
 				$f_date_to   = set_value('f_date_to', '');
 				// store in session
 				$this->session->set_userdata(array(
-					'fp_club'      => $f_club,
-					'fp_cat'       => $f_cat,
-					'fp_team'      => $f_team,
-					'fp_teams'     => $teams,
+					'fp_club'	  => $f_club,
+					'fp_cat'	   => $f_cat,
+					'fp_team'	  => $f_team,
+					'fp_teams'	 => $teams,
 					'fp_referee'   => $f_referee,
-					'fp_where'     => $f_where,
+					'fp_where'	 => $f_where,
 					'fp_date_from' => $f_date_from,
 					'fp_date_to'   => $f_date_to
 				));
 			}
 
 			$data['filters'] = array(
-				'club'         => $f_club,
-				'cat'          => $f_cat,
-				'team'         => $f_team,
-				'teams'        => $teams,
+				'club'		 => $f_club,
+				'cat'		  => $f_cat,
+				'team'		 => $f_team,
+				'teams'		=> $teams,
 				'club_referee' => $f_referee,
-				'place'        => $f_where,
-				'date_from'    => $f_date_from,
-				'date_to'      => $f_date_to,
+				'place'		=> $f_where,
+				'date_from'	=> $f_date_from,
+				'date_to'	  => $f_date_to,
 			);
 
 			// if visitor has sorted the list
-			if($display == 'order') {
-				if($orderby == 'date') {
+			if ($display == 'order') {
+				if ($orderby == 'date') {
 					$order_type = 'order_date';
-				} elseif($orderby == 'cat') {
+				} elseif ($orderby == 'cat') {
 					$order_type = 'order_cat';
-				} elseif($orderby == 'equ1') {
+				} elseif ($orderby == 'equ1') {
 					$order_type = 'order_team1';
-				} elseif($orderby == 'equ2') {
+				} elseif ($orderby == 'equ2') {
 					$order_type = 'order_team2';
-				} elseif($orderby == 'referee1') {
+				} elseif ($orderby == 'referee1') {
 					$order_type = 'order_referee1';
-				} elseif($orderby == 'referee2') {
+				} elseif ($orderby == 'referee2') {
 					$order_type = 'order_referee2';
 				} else {
 					$order_type = 'order_date';
 				}
-				if($order != 'desc') {
+				if ($order != 'desc') {
 					$order = 'asc';
 				}
 				$data['filters'][$order_type] = $order;
 				$more_params = '/' . $orderby . '-' . $order;
 			}
-
 		}
 		// if $display = list
 		else {
@@ -827,11 +873,11 @@ class Matches extends MY_Controller
 			$this->session->unset_userdata(array(
 				'fp_date_from' => '',
 				'fp_date_to'   => '',
-				'fp_club'      => '',
-				'fp_cat'       => '',
-				'fp_team'      => '',
-				'fp_teams'     => '',
-				'fp_where'     => '',
+				'fp_club'	  => '',
+				'fp_cat'	   => '',
+				'fp_team'	  => '',
+				'fp_teams'	 => '',
+				'fp_where'	 => '',
 				'fp_referee'   => '',
 			));
 			$this->session->set_userdata(array('fp_club' => $club_id, 'fp_teams' => $teams, 'fp_where' => 0, 'fp_date_from' => date('d/m/Y')));
@@ -841,13 +887,15 @@ class Matches extends MY_Controller
 
 		$nb_per_page = 10;
 		$limit = ($page_number - 1) * $nb_per_page;
-		$matches = Matches_model::getAllMatches($data['filters'], $limit, $nb_per_page);
+		$Matches_model = new Matches_model();
+		$matches = $Matches_model->getAllMatches($data['filters'], $limit, $nb_per_page);
 		$data['matches'] = $matches['result'];
 
 		// pagination
 		$data['current_page_url'] = _recreate_uri(2, $this->uri->segment_array());
-        $nb_tot_pages = ceil($matches['total'] / $nb_per_page);
-		$data['pagination'] = Misc_model::pagination(
+		$nb_tot_pages = ceil($matches['total'] / $nb_per_page);
+		$Misc_model = new Misc_model();
+		$data['pagination'] = $Misc_model->pagination(
 				$data['current_page_url'],
 				$nb_tot_pages,
 				$page_number,
@@ -856,20 +904,24 @@ class Matches extends MY_Controller
 
 		$this->load->model('clubs_model');
 		$data['clubs'] = array($club_id => $club_name);
-		$data['club_referee'] = Clubs_model::getClubsAsArray(true, true);
+		$Clubs_model = new Clubs_model();
+		$data['club_referee'] = $Clubs_model->getClubsAsArray(true, true);
 		$this->load->model('categories_model');
-		$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Categories_model = new Categories_model();
+		$data['categories'] = $Categories_model->getCategoriesAsArray(true);
 		$this->load->model('places_model');
-		$data['places'] = Places_model::getPlacesAsArray(true);
+		$Places_model = new Places_model();
+		$data['places'] = $Places_model->getPlacesAsArray(true);
 		$this->load->model('teams_model');
 		$data['teams'] = $teams;
-		$data['status'] = Teams_model::getTeamStatus();
-		$data['actions'] = Teams_model::getTeamActions(true);
+		$Teams_model = new Teams_model();
+		$data['status'] = $Teams_model->getTeamStatus();
+		$data['actions'] = $Teams_model->getTeamActions(true);
 
 		$data['title'] = "Matches de mon club";
 		$data['form_url'] = site_url("club/recherche-matches");
 		$data['form_raz'] = site_url('club/gestion-matches');
-		
+
 		//-----------------------------
 		// template
 		//-----------------------------
@@ -885,51 +937,51 @@ class Matches extends MY_Controller
 	/**
 	 * records club matches modifications
 	 */
-	function validateClubMatches()
+	public function validateClubMatches()
 	{
-		Permissions_model::userHasAccess('match_edit');
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_edit');
 
 		$this->load->model('notifications_model');
 		$this->load->library('form_validation');
 		$data = array();
 		$notification_data = array();
 
-		$this->form_validation->set_rules('match_date',  'Date du match',  'xss_clean');
-		$this->form_validation->set_rules('match_time',  'Heure du match', 'xss_clean');
-		$this->form_validation->set_rules('match_place', 'Lieu du match',  'xss_clean');
+		$this->form_validation->set_rules('match_date', 'Date du match', 'xss_clean');
+		$this->form_validation->set_rules('match_time', 'Heure du match', 'xss_clean');
+		$this->form_validation->set_rules('match_place', 'Lieu du match', 'xss_clean');
 		$this->form_validation->set_rules('match_team1_status', 'Statut équipe 1', 'xss_clean');
 		$this->form_validation->set_rules('match_team1_previous_status', 'Précédent statut équipe 1', 'xss_clean');
 		$this->form_validation->set_rules('match_team2_status', 'Statut équipe 2', 'xss_clean');
 		$this->form_validation->set_rules('match_team2_previous_status', 'Précédent statut équipe 2', 'xss_clean');
 
 		if ($this->form_validation->run() === true) {
-
-			foreach($_POST['match_date'] as $match_id => $match_date) {
+			foreach ($_POST['match_date'] as $match_id => $match_date) {
 				$date = set_value('match_date');
-				if(_myCheckDate($date, 'fr')) {
+				if (_myCheckDate($date, 'fr')) {
 					$data[$match_id]->match_datetime = _date2ISO($date);
 				}
 			}
-			foreach($_POST['match_time'] as $match_id => $match_time) {
+			foreach ($_POST['match_time'] as $match_id => $match_time) {
 				$time = set_value('match_time');
-				if(isset($data[$match_id]->match_datetime)) {
+				if (isset($data[$match_id]->match_datetime)) {
 					$data[$match_id]->match_datetime .= ' ' . _hour2Iso($time);
 				}
 			}
-			foreach($_POST['match_place'] as $match_id => $match_place) {
+			foreach ($_POST['match_place'] as $match_id => $match_place) {
 				$place = set_value('match_place');
 				$data[$match_id]->match_place_id = $place;
 			}
 			$previous_team1_status = array();
-			foreach($_POST['match_team1_previous_status'] as $match_id => $team_status) {
+			foreach ($_POST['match_team1_previous_status'] as $match_id => $team_status) {
 				$previous_status = set_value('match_team1_previous_status');
 				$previous_team1_status[$match_id] = $previous_status;
 			}
-			foreach($_POST['match_team1_status'] as $match_id => $match_status) {
+			foreach ($_POST['match_team1_status'] as $match_id => $match_status) {
 				$status = set_value('match_team1_status');
 				$data[$match_id]->match_team1_status = $status;
 				// send an alert if team asked defer or cancel
-				if( ($status == 'R' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'R'))
+				if (($status == 'R' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'R'))
 					|| ($status == 'F' && (! isset($previous_team1_status[$match_id]) || $previous_team1_status[$match_id] != 'F'))) {
 					$notification_data[$match_id] = array(
 						'team' => 1,
@@ -938,15 +990,15 @@ class Matches extends MY_Controller
 				}
 			}
 			$previous_team2_status = array();
-			foreach($_POST['match_team2_previous_status'] as $match_id => $team_status) {
+			foreach ($_POST['match_team2_previous_status'] as $match_id => $team_status) {
 				$previous_status = set_value('match_team2_previous_status');
 				$previous_team2_status[$match_id] = $previous_status;
 			}
-			foreach($_POST['match_team2_status'] as $match_id => $match_status) {
+			foreach ($_POST['match_team2_status'] as $match_id => $match_status) {
 				$status = set_value('match_team2_status');
 				$data[$match_id]->match_team2_status = $status;
 				// send an alert if team asked defer or cancel
-				if( ($status == 'R' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'R'))
+				if (($status == 'R' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'R'))
 					|| ($status == 'F' && (! isset($previous_team2_status[$match_id]) || $previous_team2_status[$match_id] != 'F'))) {
 					$notification_data[$match_id] = array(
 						'team' => 2,
@@ -954,8 +1006,10 @@ class Matches extends MY_Controller
 					);
 				}
 			}
-			Matches_model::massUpdate($data);
-			Notifications_model::massAlertTeamNok($notification_data);
+			$Matches_model = new Matches_model();
+			$Matches_model->massUpdate($data);
+			$Notifications_model = new Notifications_model();
+			$Notifications_model->massAlertTeamNok($notification_data);
 
 			$this->session->set_flashdata('message', 'Les matches ont été mis à jour.');
 			$this->session->set_flashdata('type_message', CRH_TYPE_MSG_SUCCESS);
@@ -973,12 +1027,13 @@ class Matches extends MY_Controller
 	 *
 	 * @param int $match_id, 0 if new
 	 */
-	function form ($match_id = 0)
+	public function form($match_id = 0)
 	{
-		if($match_id == 0) {
-			Permissions_model::userHasAccess('match_add');
+		$Permissions_model = new Permissions_model();
+		if ($match_id == 0) {
+			$Permissions_model->userHasAccess('match_add');
 		} else {
-			Permissions_model::userHasAccess('match_edit');
+			$Permissions_model->userHasAccess('match_edit');
 		}
 		$this->load->helper(array('form'));
 		$data = array();
@@ -989,20 +1044,25 @@ class Matches extends MY_Controller
 		$data['message'] = _set_result_message($message, $type_message);
 
 		$title = 'Ajouter';
-		if($match_id > 0) {
-			$data['match'] = Matches_model::getMatch($match_id);
+		if ($match_id > 0) {
+			$Matches_model = new Matches_model();
+			$data['match'] = $Matches_model->getMatch($match_id);
 			$title = 'Modifier';
 		}
 		$data['title'] = $title . ' un match';
 
 		$this->load->model('categories_model');
-		$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Categories_model = new Categories_model();
+		$data['categories'] = $Categories_model->getCategoriesAsArray(true);
 		$this->load->model('championships_model');
-		$data['cs'] = Championships_model::getCsAsArray(true);
+		$Championships_model = new Championships_model();
+		$data['cs'] = $Championships_model->getCsAsArray(true);
 		$this->load->model('places_model');
-		$data['places'] = Places_model::getPlacesAsArray(true);
+		$Places_model = new Places_model();
+		$data['places'] = $Places_model->getPlacesAsArray(true);
 		$this->load->model('teams_model');
-		$data['teams'] = Teams_model::getTeamsAsArray(true);
+		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
 
 		//-----------------------------
 		// template
@@ -1018,28 +1078,29 @@ class Matches extends MY_Controller
 	/**
 	 * add/edit form validation
 	 */
-	function validate()
+	public function validate()
 	{
-		$match_id = $this->input->post('match_id', TRUE);
-		if($match_id == 0) {
-			Permissions_model::userHasAccess('match_add');
+		$match_id = $this->input->post('match_id', true);
+		$Permissions_model = new Permissions_model();
+		if ($match_id == 0) {
+			$Permissions_model->userHasAccess('match_add');
 		} else {
-			Permissions_model::userHasAccess('match_edit');
+			$Permissions_model->userHasAccess('match_edit');
 		}
 		$this->load->helper(array('form'));
 		$this->load->library('form_validation');
 		$data = array();
 
 		// validation rules
-		$this->form_validation->set_rules('match_id', 'match_id',    'integer');
-		$this->form_validation->set_rules('date',     'Date',        'trim|xss_clean');
-		$this->form_validation->set_rules('time',     'Heure',       'trim|xss_clean');
-		$this->form_validation->set_rules('place',    'Lieu',        'trim|xss_clean');
-		$this->form_validation->set_rules('cs',       'Compétition', 'trim|required|is_natural_no_zero|xss_clean');
-		$this->form_validation->set_rules('cat',      'Catégorie',   'trim|required|is_natural_no_zero|xss_clean');
-		$this->form_validation->set_rules('team1',    'Equipe 1',    'trim|required|is_natural_no_zero|xss_clean');
-		$this->form_validation->set_rules('team2',    'Equipe 2',    'trim|required|is_natural_no_zero|xss_clean');
-		$this->form_validation->set_rules('comments', 'Commentaires','trim|xss_clean');
+		$this->form_validation->set_rules('match_id', 'match_id', 'integer');
+		$this->form_validation->set_rules('date', 'Date', 'trim|xss_clean');
+		$this->form_validation->set_rules('time', 'Heure', 'trim|xss_clean');
+		$this->form_validation->set_rules('place', 'Lieu', 'trim|xss_clean');
+		$this->form_validation->set_rules('cs', 'Compétition', 'trim|required|is_natural_no_zero|xss_clean');
+		$this->form_validation->set_rules('cat', 'Catégorie', 'trim|required|is_natural_no_zero|xss_clean');
+		$this->form_validation->set_rules('team1', 'Equipe 1', 'trim|required|is_natural_no_zero|xss_clean');
+		$this->form_validation->set_rules('team2', 'Equipe 2', 'trim|required|is_natural_no_zero|xss_clean');
+		$this->form_validation->set_rules('comments', 'Commentaires', 'trim|xss_clean');
 
 		// run form validation
 		$result = $this->form_validation->run();
@@ -1059,7 +1120,8 @@ class Matches extends MY_Controller
 
 		//-------------------------------------
 		if ($result !== false) {
-			$data['match_id'] = Matches_model::setMatch($data['match_id'], $data['match']);
+			$Matches_model = new Matches_model();
+			$data['match_id'] = $Matches_model->setMatch($data['match_id'], $data['match']);
 			if ($data['match_id'] == CRH_ERROR_DATA_EMPTY) {
 				$this->session->set_flashdata('message', 'Aucune donnée à enregistrer.');
 				$this->session->set_flashdata('type_message', CRH_TYPE_MSG_ERROR);
@@ -1074,24 +1136,28 @@ class Matches extends MY_Controller
 
 		$data['match']->match_date_format = $date_format;
 		$data['match']->match_time_format = $time_format;
-		
+
 		$data['message'] = _set_result_message($message, $type_message);
 
 		$title = 'Ajouter';
-		if($data['match_id'] > 0) {
+		if ($data['match_id'] > 0) {
 			$title = 'Modifier un';
 		}
 		$data['title'] = $title . ' un match';
 
 		$this->load->model('categories_model');
-		$data['categories'] = Categories_model::getCategoriesAsArray(true);
+		$Categories_model = new Categories_model();
+		$data['categories'] = $Categories_model->getCategoriesAsArray(true);
 		$this->load->model('championships_model');
-		$data['cs'] = Championships_model::getCsAsArray(true);
+		$Championships_model = new Championships_model();
+		$data['cs'] = $Championships_model->getCsAsArray(true);
 		$this->load->model('places_model');
-		$data['places'] = Places_model::getPlacesAsArray(true);
+		$Places_model = new Places_model();
+		$data['places'] = $Places_model->getPlacesAsArray(true);
 		$this->load->model('teams_model');
-		$data['teams'] = Teams_model::getTeamsAsArray(true);
-		
+		$Teams_model = new Teams_model();
+		$data['teams'] = $Teams_model->getTeamsAsArray(true);
+
 		//-----------------------------
 		// template
 		//-----------------------------
@@ -1106,18 +1172,17 @@ class Matches extends MY_Controller
 	/**
 	 * delete a match
 	 */
-	function del($match_id)
+	public function del($match_id)
 	{
-		Permissions_model::userHasAccess('match_del');
-		if( ! empty($match_id)) {
-			Matches_model::delMatch($match_id);
+		$Permissions_model = new Permissions_model();
+		$Permissions_model->userHasAccess('match_del');
+		if (! empty($match_id)) {
+			$Matches_model = new Matches_model();
+			$Matches_model->delMatch($match_id);
 			$referer = $_SERVER['HTTP_REFERER'];
 			redirect($referer);
 		}
 	}
-
-
-
 }
 
 /* End of file matches.php */
