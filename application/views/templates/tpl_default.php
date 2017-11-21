@@ -119,8 +119,13 @@ echo $_styles . "\n";
 		}, 600);
 	});
 	$(".team_calendar").change(function() {
+		$tid = $(this).val();
+		if ("0" == $tid) {
+			window.location = "<?php echo site_url('default_controller'); ?>";
+			return false;
+		}
 		var url_tpl = "<?php echo site_url('matches/t__NUM__'); ?>";
-		var url = url_tpl.replace("__NUM__", $(this).val());
+		var url = url_tpl.replace("__NUM__", $tid);
 		window.location = url;
 	});
 </script>
